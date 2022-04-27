@@ -127,6 +127,11 @@ class TestHomework:
         )
 
     def test_check_tokens_true(self):
+        for v in self.ENV_VARS:
+            try:
+                os.environ.pop(v)
+            except KeyError:
+                pass
 
         import homework
 

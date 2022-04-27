@@ -12,7 +12,6 @@ from telegram.error import Unauthorized
 
 load_dotenv()
 
-
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
@@ -26,8 +25,6 @@ HOMEWORK_STATUSES = {
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
-
-ENV_VARS = ['PRACTICUM_TOKEN', 'TELEGRAM_TOKEN', 'TELEGRAM_CHAT_ID']
 
 logging.basicConfig(
     format='%(asctime)s [%(levelname)s] %(message)s',
@@ -139,11 +136,11 @@ def check_tokens():
         True, если переменные присутствуют.
         False, если переменных нет.
     """
-    for item in ENV_VARS:
-        env = os.environ.get(item)
+    env_vars = (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
+    for env in env_vars:
         if env is None:
             text = (
-                f'Отсутствует обязательная переменная окружения {item}.'
+                f'Отсутствует обязательная переменная окружения {env}.'
                 'Программа принудительно остановлена.'
             )
             _log.critical(text)
