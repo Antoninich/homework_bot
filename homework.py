@@ -172,7 +172,6 @@ def main():
 
     while True:
         try:
-            _log.info(current_timestamp)
             if not check_tokens():
                 text = (
                     'Отсутствует или неправильная обязательная переменная окружения.\n'
