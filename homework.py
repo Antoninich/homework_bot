@@ -18,7 +18,7 @@ PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 
-RETRY_TIME = 300
+RETRY_TIME = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
@@ -168,8 +168,7 @@ def main():
     except Unauthorized:
         raise SystemExit('С таким токеном TELEGRAM_TOKEN бот не существует')
 
-    #current_timestamp = int(time.time())
-    current_timestamp = int(datetime.datetime(2022, 4, 4, 7, 50).timestamp())
+    current_timestamp = int(time.time())
 
     while True:
         try:
@@ -188,7 +187,7 @@ def main():
                 if messages:
                     send_message(bot, messages)
 
-            current_timestamp = current_timestamp - RETRY_TIME
+            current_timestamp = current_timestamp + RETRY_TIME
             time.sleep(RETRY_TIME)
 
         except Exception as error:
