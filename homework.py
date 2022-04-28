@@ -1,3 +1,4 @@
+import datetime
 from http import HTTPStatus
 import logging
 import os
@@ -5,10 +6,10 @@ import sys
 import time
 
 from dotenv import load_dotenv
-from exceptions.exceptions import APIError
+from exceptions.exceptions import APIError, RequestError
 import requests
 import telegram
-from telegram.error import Unauthorized
+from telegram.error import TelegramError, Unauthorized
 
 load_dotenv()
 
@@ -42,11 +43,15 @@ def send_message(bot, message):
     Параметры:
         bot: Bot
         message: str
-
     """
     global old_message
     if old_message != message:
-        bot.send_message(TELEGRAM_CHAT_ID, message)
+        try:
+            bot.send_message(TELEGRAM_CHAT_ID, message)
+        except TelegramError:
+            raise Exception(
+                'Произошла ошибка при отправке сообщения в Telegram'
+            )
         old_message = message
         _log.info('Сообщение успешно отправлено в Telegram')
 
@@ -60,14 +65,37 @@ def get_api_answer(current_timestamp):
     Возвращаемое значение:
         Ответ API, преобразовав его из формата JSON к типам данных Python.
     """
-    timestamp = current_timestamp or int(time.time())
+    timestamp = (
+        current_timestamp
+        if isinstance(current_timestamp, (int, float)) else
+        int(time.time())
+    )
     params = {'from_date': timestamp}
-    response = requests.get(ENDPOINT, headers=HEADERS, params=params)
+    try:
+        response = requests.get(ENDPOINT, headers=HEADERS, params=params)
+        date = datetime.datetime.fromtimestamp(timestamp)
+        _log.debug(
+            f'Запрашиваются работы с {date.strftime("%Y-%m-%d %H:%M:%S")}'
+        )
+    except requests.exceptions.ConnectionError as error:
+        raise RequestError(error)
+    except requests.exceptions.Timeout as error:
+        raise RequestError(error)
+    except requests.exceptions.TooManyRedirects as error:
+        raise RequestError(error)
+    except requests.exceptions.URLRequired as error:
+        raise RequestError(error)
+    except requests.exceptions.RequestException as error:
+        raise RequestError(error)
+
     status_code = response.status_code
     if status_code != HTTPStatus.OK:
         raise APIError(f'Некорректный ответ от API {status_code}')
 
-    response = response.json()
+    try:
+        response = response.json()
+    except TypeError:
+        raise Exception('Пришёл ответ не в формате json')
     return response
 
 
@@ -88,7 +116,7 @@ def check_response(response):
 
     if homeworks is None:
         raise APIError
-    elif type(homeworks) != list:
+    elif not isinstance(homeworks, list):
         raise APIError
     elif response is None:
         raise APIError
