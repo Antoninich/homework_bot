@@ -111,6 +111,7 @@ def check_response(response):
     """
     try:
         homeworks = response.get('homeworks')
+        _log.debug(f'Ответ от сервера: {homeworks}')
     except AttributeError:
         raise TypeError('API вернул некорректный ответ')
 
